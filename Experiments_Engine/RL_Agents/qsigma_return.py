@@ -74,8 +74,6 @@ class QSigmaReturnFunction:
         estimated_Gt = neg_term_ind[:, -1] * neg_timeout_ind[:, -1] * selected_qval[:, -1] + \
                        term_ind[:, -1] * neg_timeout_ind[:, -1] * rewards[:, -1] + \
                        neg_term_ind[:, -1] * timeout_ind[:, -1] * selected_qval[:, -1]
-        # if np.sum(timeout_ind) > 0:
-        #     print("wait!")
 
         for i in range(self.n-1, -1, -1):
             R_t = rewards[:, i]
