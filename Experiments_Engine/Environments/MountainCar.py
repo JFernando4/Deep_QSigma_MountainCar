@@ -87,7 +87,7 @@ class MountainCar(EnvironmentBase):
             position = 0.5
             terminate = True
 
-        if terminate:
+        if terminate or timeout:
             if self.save_summary:
                 self.summary['steps_per_episode'].append(self.step_count)
             self.step_count = 0

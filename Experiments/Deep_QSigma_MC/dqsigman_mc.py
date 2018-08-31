@@ -67,7 +67,6 @@ class ExperimentAgent():
 
             " Experience Replay Buffer Parameters "
             self.config.buff_sz = 20000
-            self.config.frame_stack = 1
             self.config.env_state_dims = [2]    # Dimensions of the environment's states
             self.config.obs_dtype = np.float32
             self.config.sigma_decay = self.beta

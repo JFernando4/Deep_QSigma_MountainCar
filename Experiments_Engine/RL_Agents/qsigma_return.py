@@ -34,7 +34,7 @@ class QSigmaReturnFunction:
         if self.compute_bprobs:
             assert self.bpolicy is not None
 
-    def batch_iterative_return_function(self, rewards, actions, qvalues, terminations, bprobs, sigmas,
+    def batch_iterative_return_function(self, rewards, actions, qvalues, terminations, timeouts, bprobs, sigmas,
                                         batch_size):
         """
         Assumptions of the implementation:
@@ -46,6 +46,7 @@ class QSigmaReturnFunction:
         :param actions: expected_shape = [batch_size, n], expected_type = np.uint8, np.uint16, np.uint32, or np.uint64
         :param qvalues: expected_shape = [batch_size, n, num_actions]
         :param terminations: expected_shape = [batch_size, n]
+        :param timeouts: expected_shape = [batch_size, n]
         :param bprobs: expected_shape = [batch_size, n, num_actions]
         :param sigmas: expected_shape = [batch_size, n]
         :param batch_size: dtype = int
@@ -68,7 +69,13 @@ class QSigmaReturnFunction:
         one_matrix = np.ones([batch_idxs.size, self.n], dtype=np.uint8)
         term_ind = terminations.astype(np.uint8)
         neg_term_ind = np.subtract(one_matrix, term_ind)
-        estimated_Gt = neg_term_ind[:, -1] * selected_qval[:, -1] + term_ind[:, -1] * rewards[:, -1]
+        timeout_ind = timeouts.astype(np.uint8)
+        neg_timeout_ind = np.subtract(one_matrix, timeout_ind)
+        estimated_Gt = neg_term_ind[:, -1] * neg_timeout_ind[:, -1] * selected_qval[:, -1] + \
+                       term_ind[:, -1] * neg_timeout_ind[:, -1] * rewards[:, -1] + \
+                       neg_term_ind[:, -1] * timeout_ind[:, -1] * selected_qval[:, -1]
+        # if np.sum(timeout_ind) > 0:
+        #     print("wait!")
 
         for i in range(self.n-1, -1, -1):
             R_t = rewards[:, i]
@@ -89,6 +96,10 @@ class QSigmaReturnFunction:
 
             G_t = R_t + self.gamma * (rho * Sigma_t + (one_vector - Sigma_t) * exec_tprob) * estimated_Gt +\
                   self.gamma * (one_vector - Sigma_t) * (V_t - exec_tprob * exec_q)
-            estimated_Gt = neg_term_ind[:, i] * G_t + term_ind[:, i] * R_t
+            timeout_factor = R_t + self.gamma * (rho * Sigma_t + (one_vector - Sigma_t) * exec_tprob) * exec_q + \
+                             self.gamma * (one_vector - Sigma_t) * (V_t - exec_tprob * exec_q)
+            estimated_Gt = neg_term_ind[:, i] * neg_timeout_ind[:, i] * G_t \
+                           + term_ind[:, i] * neg_timeout_ind[:, i] * R_t \
+                           + neg_term_ind[:, i] * timeout_ind[:, i] * timeout_factor
 
         return estimated_Gt

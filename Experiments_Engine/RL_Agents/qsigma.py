@@ -62,7 +62,7 @@ class QSigma(RL_ALgorithmBase):
         last_reward, last_action, last_qvalues, last_termination = trajectory[trajectory_len-1]
         estimate_return = last_reward if last_termination else last_qvalues[last_action]
         for i in range(trajectory_len-1, -1, -1):
-            R_t, A_t, Q_t, termination = trajectory[i]
+            R_t, A_t, Q_t, termination, timeout = trajectory[i]
             if termination:
                 estimate_return = R_t
             else:
@@ -102,7 +102,7 @@ class QSigma(RL_ALgorithmBase):
             # Storing in the experience replay buffer
             if self.use_er_buffer:
                 observation = {"reward": 0, "action":A, "state":self.env.get_state_for_er_buffer(), "terminate": False,
-                               "bprobabilities": np.zeros(q_values.shape), "sigma":self.sigma}
+                               "bprobabilities": np.zeros(q_values.shape), "sigma":self.sigma, "timeout": False}
                 self.er_buffer.store_observation(observation)
             T = inf
             t = 0
@@ -114,7 +114,7 @@ class QSigma(RL_ALgorithmBase):
             while 1:
                 if t < T:
                     # Step in the environment
-                    S, R, terminate = self.env.update(A)
+                    S, R, terminate, timeout = self.env.update(A)
                     # Updating Q_values and State
                     States[(t+1) % (self.n+1)] = S
                     q_values = self.fa.get_next_states_values(S)
@@ -125,6 +125,8 @@ class QSigma(RL_ALgorithmBase):
                         bpropabilities = np.ones(self.env.get_num_actions(), dtype=np.float64)
                         A = np.uint8(0)
                     else:
+                        if timeout:
+                            T = t + 1
                         if self.config.rand_steps_count >= self.initial_rand_steps:
                             A = self.bpolicy.choose_action(q_values)
                             bpropabilities = self.bpolicy.probability_of_action(q_values, all_actions=True)
@@ -132,7 +134,8 @@ class QSigma(RL_ALgorithmBase):
                             self.bpolicy.anneal()
                         else:
                             A = np.random.randint(len(q_values))
-                            bpropabilities = np.ones(self.env.get_num_actions(), dtype=np.float64) * (1/self.env.get_num_actions())
+                            bpropabilities = np.ones(self.env.get_num_actions(), dtype=np.float64) * \
+                                             (1/self.env.get_num_actions())
                             self.config.rand_steps_count += 1
 
                         Actions[(t + 1) % (self.n + 1)] = A
@@ -141,7 +144,8 @@ class QSigma(RL_ALgorithmBase):
                     # Storing in the experience replay buffer
                     if self.use_er_buffer:
                         observation = {"reward": R, "action": A, "state": self.env.get_state_for_er_buffer(),
-                                       "terminate": terminate, "bprobabilities": bpropabilities, "sigma": self.sigma}
+                                       "terminate": terminate, "bprobabilities": bpropabilities, "sigma": self.sigma,
+                                       "timeout": timeout}
                         self.er_buffer.store_observation(observation)
                 # Computing the return and updating the function approximator
                 tau = t - self.n + 1
