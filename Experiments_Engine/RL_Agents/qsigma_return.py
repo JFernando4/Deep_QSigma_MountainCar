@@ -96,6 +96,13 @@ class QSigmaReturnFunction:
                   self.gamma * (one_vector - Sigma_t) * (V_t - exec_tprob * exec_q)
             timeout_factor = R_t + self.gamma * (rho * Sigma_t + (one_vector - Sigma_t) * exec_tprob) * exec_q + \
                              self.gamma * (one_vector - Sigma_t) * (V_t - exec_tprob * exec_q)
+            # Since each transition in the buffer contains (R_{t+1}, S_{t+1}, A_{t+1}), and R_{t+1} = R(S_t, A_t),
+            # this timeout factor is essentially computing:
+            #  R_{t+1}
+            #   + \gamma * \sigma * \rho *  Q(S_{t+1}, A_{t+1})
+            #   + \gamma * (1-\sigma) \sum_{a \in \mathcal{A}} \pi(a|S_{t+1}) Q(S_{t+1}, a),
+            # where \mathcal{A} is the set of all possible actions. This is the last term of the n-step Q(Sigma)
+            # recursive return.
             estimated_Gt = neg_term_ind[:, i] * neg_timeout_ind[:, i] * G_t \
                            + term_ind[:, i] * neg_timeout_ind[:, i] * R_t \
                            + neg_term_ind[:, i] * timeout_ind[:, i] * timeout_factor
