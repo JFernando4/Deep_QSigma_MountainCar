@@ -19,7 +19,7 @@ def sample_agents(max_agents, num_agents, agents_dir_list):
     return agents_idxs
 
 
-def results_summary_data(pathname, evaluation_episodes, average_window, omit_list=[], ci_error=0.05, max_agents=5,
+def results_summary_data(pathname, evaluation_episodes, average_window, omit_list=[], ci_error=0.05,
                          name="", fa_windows=[50,500], drop_k=0):
     addtofile = False
     for dir_name in os.listdir(pathname):
@@ -48,7 +48,7 @@ def results_summary_data(pathname, evaluation_episodes, average_window, omit_lis
 
                 " Moving Averages txt File "
                 moving_averages = np.array(moving_averages)
-                sample_size = max_agents - drop_k
+                sample_size = len(top_agents_names)
                 average = np.average(moving_averages, axis=0)
                 ste = np.std(moving_averages, axis=0, ddof=1)
                 upper_bound, lower_bound, error_margin = compute_tdist_confidence_interval(average, ste, ci_error,
@@ -140,9 +140,9 @@ if __name__ == "__main__":
     results_path = os.path.join(experiment_path, "Results")
 
     fa_windows = [10, 50, 100, 250, 500]
-    evaluation_episodes = [50,100,250,500]
+    evaluation_episodes = [50,100,150,200,250,300,350,400,450,500]
     average_window = 50
     omit_list = []
     results_summary_data(results_path, evaluation_episodes, average_window, ci_error=0.05,
-                         max_agents=150, name="dropped_"+str(args.drop_k), fa_windows=fa_windows, omit_list=omit_list,
+                         name="dropped_"+str(args.drop_k), fa_windows=fa_windows, omit_list=omit_list,
                          drop_k=args.drop_k)
