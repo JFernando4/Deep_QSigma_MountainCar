@@ -61,10 +61,12 @@ class NeuralNetwork_wER_FA(FunctionApproximatorBase):
         if not restore:
             for var in tf.global_variables():
                 self.sess.run(var.initializer)
+            self.update_target_network()
 
     def update(self, state=None, action=None, nstep_return=None):
         if self.er_buffer.ready_to_sample():
-            sample_frames, sample_actions, sample_returns = self.er_buffer.get_data(update_function=self.get_next_states_values)
+            sample_frames, sample_actions, sample_returns = \
+                self.er_buffer.get_data(update_function=self.get_next_states_values_target_network)
             sample_actions = np.column_stack([np.arange(len(sample_actions)), sample_actions])
             feed_dictionary = {self.update_network.x_frames: np.squeeze(sample_frames),
                                self.update_network.x_actions: sample_actions,
@@ -88,6 +90,17 @@ class NeuralNetwork_wER_FA(FunctionApproximatorBase):
         return y_hat[action]
 
     def get_next_states_values(self, state, reshape=True):
+        if reshape:
+            dims = [1] + list(self.obs_dims)
+            feed_dictionary = {self.update_network.x_frames: state.reshape(dims)}
+            y_hat = self.sess.run(self.update_network.y_hat, feed_dict=feed_dictionary)
+            return y_hat[0]
+        else:
+            feed_dictionary = {self.update_network.x_frames: state}
+            y_hat = self.sess.run(self.update_network.y_hat, feed_dict=feed_dictionary)
+            return y_hat
+
+    def get_next_states_values_target_network(self, state, reshape=True):
         if reshape:
             dims = [1] + list(self.obs_dims)
             feed_dictionary = {self.target_network.x_frames: state.reshape(dims)}
