@@ -20,7 +20,7 @@ def sample_agents(max_agents, num_agents, agents_dir_list):
 
 
 def results_summary_data(pathname, evaluation_episodes, average_window, omit_list=[], ci_error=0.05,
-                         name="", fa_windows=[50,500], drop_k=0):
+                         name="", fa_windows=[50,500], drop_k=0, total_agents=100):
     addtofile = False
     for dir_name in os.listdir(pathname):
         if dir_name in omit_list:
@@ -49,6 +49,7 @@ def results_summary_data(pathname, evaluation_episodes, average_window, omit_lis
                 " Moving Averages txt File "
                 moving_averages = np.array(moving_averages)
                 sample_size = len(top_agents_names)
+                assert sample_size + drop_k == total_agents
                 average = np.average(moving_averages, axis=0)
                 ste = np.std(moving_averages, axis=0, ddof=1)
                 upper_bound, lower_bound, error_margin = compute_tdist_confidence_interval(average, ste, ci_error,
