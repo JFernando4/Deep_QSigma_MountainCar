@@ -189,7 +189,6 @@ class ExperimentAgent():
                          str(self.config.initial_rand_steps) + "\n")
         params_txt.write("\tcompute behaviour policy's probabilities = " +
                          str(self.config.compute_bprobs) + "\n")
-        params_txt.write("\tadjust rho = " + str(self.adjust_rho) + "\n")
         params_txt.write("\n")
 
         assert isinstance(self.target_policy, EpsilonGreedyPolicy)
