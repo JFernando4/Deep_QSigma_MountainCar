@@ -12,5 +12,5 @@ do
     echo "Training Agent $i"
     python3 /home/jfernando/PycharmProjects/RL_Experiments/Experiments/Deep_QSigma_MC/dqsigman_mc.py  -episodes 500 \
     -n 10 -sigma 1 -beta 0.95 -store_sigma -quiet -dump_agent -target_epsilon 0.1 \
-    -name DecayingSigma_OffPolicy_n3/agent_$i
+    -name DecayingSigma_OffPolicy_n10/agent_$i
 done
