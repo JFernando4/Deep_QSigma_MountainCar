@@ -19,6 +19,7 @@ class QSigmaExperienceReplayBuffer:
         obs_dtype           np.type         np.uint8            the data type of the observations
         sigma               float           0.5                 Sigma parameter, see De Asis et. al (2018)
         sigma_decay         float           1.0                 decay rate of sigma
+        sigma_min           float           0                   the lowest value sigma can attain when decaying
         store_bprobs        bool            False               whether to store and use the behaviour policy probabilities
                                                                 for the return function
         store_sigma         bool            False               whether to store sigma at every time step and use
@@ -37,6 +38,7 @@ class QSigmaExperienceReplayBuffer:
         self.obs_dtype = check_attribute_else_default(self.config, 'obs_dtype', np.uint8)
         self.sigma = check_attribute_else_default(self.config, 'sigma', 0.5)
         self.sigma_decay = check_attribute_else_default(self.config, 'sigma_decay', 1.0)
+        self.sigma_min = check_attribute_else_default(self.config, 'sigma_min', 0.0)
         self.store_bprobs = check_attribute_else_default(self.config, 'store_bprobs', False)
         self.store_sigma = check_attribute_else_default(self.config, 'store_sigma', False)
         self.initial_rand_steps = check_attribute_else_default(self.config, 'initial_rand_steps', 0)
@@ -98,6 +100,8 @@ class QSigmaExperienceReplayBuffer:
             self.sigma *= self.sigma_decay
             if self.sigma < 1e-10:  # to prevent underflow
                 self.sigma = 0.0
+            if self.sigma < self.sigma_min:
+                self.sigma = self.sigma_min
             self.config.sigma = self.sigma
 
     def sample_indices(self):

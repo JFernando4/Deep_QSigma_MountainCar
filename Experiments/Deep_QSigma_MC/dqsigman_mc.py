@@ -34,6 +34,7 @@ class ExperimentAgent():
         self.n = experiment_parameters["n"]
         self.sigma = experiment_parameters["sigma"]
         self.beta = experiment_parameters["beta"]
+        self.sigma_min = experiment_parameters['sigma_min']
         self.target_epsilon = experiment_parameters['target_epsilon']
         self.compute_bprobabilities = experiment_parameters['compute_bprobabilities']
         self.anneal_epsilon = experiment_parameters['anneal_epsilon']
@@ -70,6 +71,7 @@ class ExperimentAgent():
             self.config.env_state_dims = [2]    # Dimensions of the environment's states
             self.config.obs_dtype = np.float32
             self.config.sigma_decay = self.beta
+            self.config.sigma_min = self.sigma_min
             self.config.sigma = self.sigma
             self.config.store_bprobs = not self.compute_bprobabilities
             self.config.store_sigma = self.store_sigma
@@ -187,6 +189,7 @@ class ExperimentAgent():
                          str(self.config.initial_rand_steps) + "\n")
         params_txt.write("\tcompute behaviour policy's probabilities = " +
                          str(self.config.compute_bprobs) + "\n")
+        params_txt.write("\tadjust rho = " + str(self.adjust_rho) + "\n")
         params_txt.write("\n")
 
         assert isinstance(self.target_policy, EpsilonGreedyPolicy)
@@ -262,6 +265,7 @@ if __name__ == "__main__":
     parser.add_argument('-n', action='store', default=1, type=np.uint8)
     parser.add_argument('-sigma', action='store', default=0.5, type=np.float64)
     parser.add_argument('-beta', action='store', default=1, type=np.float64)
+    parser.add_argument('-sigma_min', action='store', default=0, type=np.float64)
     parser.add_argument('-target_epsilon', action='store', default=0.1, type=np.float64)
     parser.add_argument('-compute_bprobabilities', action='store_true', default=False)
     parser.add_argument('-anneal_epsilon', action='store_true', default=False)
