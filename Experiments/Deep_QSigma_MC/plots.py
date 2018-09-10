@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import argparse
 from Experiments_Engine.Plots_and_Summaries import compute_tdist_confidence_interval
 
-SAMPLE_SIZE = 150
+SAMPLE_SIZE = 100
 NUMBER_OF_EPISODES = 500
 
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
     experiment_path = os.getcwd()
     results_path = os.path.join(experiment_path, "Results")
-    sample_size = 150
+    sample_size = 100
     # std = standard deviation, avg = average, uci = upper confidence interval, lci = lower confidence interval
     # me = margin of error
 
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
-            plot_interval_average(method_data, ylim=(-3000, 0), ytitle='Average Return Over the Last 50 Episodes',
+            plot_interval_average(method_data, ylim=(-1300, 0), ytitle='Average Return Over the Last 50 Episodes',
                                   xtitle='Episode Number', figure_name='Sarsa_On_vs_Off')
 
         # Q(0.5)
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
-            plot_interval_average(method_data, ylim=(-3000, 0), ytitle='Average Return Over the Last 50 Episodes',
+            plot_interval_average(method_data, ylim=(-1300, 0), ytitle='Average Return Over the Last 50 Episodes',
                                   xtitle='Episode Number', figure_name='QSigma05_On_vs_Off')
 
         # Decaying Sigma
@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
-            plot_interval_average(method_data, ylim=(-1000, 0), ytitle='Average Return Over the Last 50 Episodes',
+            plot_interval_average(method_data, ylim=(-1300, 0), ytitle='Average Return Over the Last 50 Episodes',
                                   xtitle='Episode Number', figure_name='DecayingSigma_On_vs_Off')
 
     #################################
@@ -222,7 +222,7 @@ if __name__ == "__main__":
 
         # Sarsa
         method_names = ['Sarsa_wAnnealingEpsilon_wOnlineBprobabilities', 'Sarsa_OnPolicy']
-        method_data = {'Sarsa_wAnnealingEpsilon_wOnlineBprobabilities':{},
+        method_data = {'Sarsa_wAnnealingEpsilon_wOnlineBprobabilities': {},
                        'Sarsa_OnPolicy': {}}
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
@@ -378,25 +378,27 @@ if __name__ == "__main__":
     ##########################
     if args.best_nstep:
         """ Experiment Colors """
-        colors = ['#490A3D',  # Purple-ish      - Sarsa n10
+        colors = ['#490A3D',  # Purple-ish      - Sarsa n20
                   '#BD1550',  # Red-ish         - QSigma 0.5 n20
                   '#E97F02',  # Orange-ish      - TreeBackup n20
                   '#F8CA00',  # Yellow-ish      - DecayingSigma n20
-                  #'#8A9B0F',  # Green-ish       - DecayingSigma Hand Picked SD n10
+                  '#8A9B0F',  # Green-ish       - DecayingSigma Hand Picked SD n10
                   '#C0ADDB']  # Violet-ish      - QLearning
 
-        shade_colors = ['#c9bac6',  # Purple-ish        - Sarsa n10
+        shade_colors = ['#c9bac6',  # Purple-ish        - Sarsa n20
                         '#eab8ca',  # Red-ish           - QSigma 0.5 n20
                         '#f8d8b3',  # Orange-ish        - TreeBackup n20
                         '#f4e8b9',  # Yellow-ish        - DecayingSigma n20
-                        #'#dde2b8',  # Green-ish         - DecayingSigma HP SD n10
+                        '#dde2b8',  # Green-ish         - DecayingSigma HP SD n10
                         "#e8e0f2"   # Violet-ish        - QLearning
                         ]
 
-        method_names = ['Sarsa_n5', 'QSigma0.5_n20', 'TreeBackup_n20', 'DecayingSigma_n20', "QLearning"]
-        method_data = {'Sarsa_n5': {},
+        method_names = ['Sarsa_n20', 'QSigma0.5_n20', 'TreeBackup_n20', 'DecayingSigma_n20', "DecayingSigma_hp_n20",
+                        "QLearning"]
+        method_data = {'Sarsa_n20': {},
                        'QSigma0.5_n20': {},
                        'TreeBackup_n20': {},
+                       'DecayingSigma_hp_n20': {},
                        'DecayingSigma_n20': {},
                        'QLearning': {}}
 
@@ -417,17 +419,17 @@ if __name__ == "__main__":
                                   interval_size=50)
 
         """ Experiment Colors """
-        colors = ['#490A3D',  # Purple-ish      - Sarsa n10
+        colors = ['#490A3D',  # Purple-ish      - Sarsa n20
                   '#BD1550',  # Red-ish         - QSigma 0.5 n20
                   '#E97F02',  # Orange-ish      - TreeBackup n20
-                  # '#F8CA00',  # Yellow-ish      - DecayingSigma n20
+                  '#F8CA00',  # Yellow-ish      - DecayingSigma n20
                   '#8A9B0F',  # Green-ish       - DecayingSigma Hand Picked SD n10
                   '#C0ADDB']  # Violet-ish      - QLearning
 
-        shade_colors = ['#c9bac6',  # Purple-ish        - Sarsa n10
+        shade_colors = ['#c9bac6',  # Purple-ish        - Sarsa n20
                         '#eab8ca',  # Red-ish           - QSigma 0.5 n20
                         '#f8d8b3',  # Orange-ish        - TreeBackup n20
-                        # '#f4e8b9',  # Yellow-ish        - DecayingSigma n20
+                        '#f4e8b9',  # Yellow-ish        - DecayingSigma n20
                         '#dde2b8',  # Green-ish         - DecayingSigma HP SD n10
                         "#e8e0f2"   # Violet-ish        - QLearning
                         ]
