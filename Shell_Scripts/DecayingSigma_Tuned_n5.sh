@@ -10,7 +10,7 @@ export PYTHONPATH=.
 for (( i=$first_agent_number; i <= $last_agent_number; i++ ))
 do
     echo "Training Agent $i"
-    python3 ./Experiments/Deep_QSigma_MC/dqsigman_mc.py  -episodes 500 \
+    python3 ./Experiments/Deep_QSigma_MC/dqsigman_mc.py  -episodes 500 -compute_bprobabilities\
     -n 5 -sigma 1 -beta 0.99724 -sigma_min 0.5 -store_sigma -quiet -dump_agent -target_epsilon 0.1 \
     -name DecayingSigma_Tuned_n5/agent_$i
 done
