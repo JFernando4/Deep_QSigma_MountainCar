@@ -10,6 +10,6 @@ export PYTHONPATH=.
 for (( i=$first_agent_number; i <= $last_agent_number; i++ ))
 do
     echo "Training Agent $i"
-    python3 ./Experiments/Deep_QSigma_MC/dqsigman_mc.py-episodes 500 -n 3 -sigma 0 -beta 1 -quiet -dump_agent \
+    python3 ./Experiments/Deep_QSigma_MC/dqsigman_mc.py -episodes 500 -n 3 -sigma 0 -beta 1 -quiet -dump_agent \
     -target_epsilon 0.1 -name TreeBackup_n3/agent_$i
 done
