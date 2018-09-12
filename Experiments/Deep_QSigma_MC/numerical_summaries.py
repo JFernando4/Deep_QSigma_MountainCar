@@ -6,10 +6,6 @@ import argparse
 from Experiments_Engine.Plots_and_Summaries import compute_tdist_confidence_interval, create_results_file
 
 
-MAX_FRAMES = 500000
-MAX_EPISODES = 2000
-
-
 def sample_agents(max_agents, num_agents, agents_dir_list):
     agents_idxs = []
     while len(agents_idxs) != max_agents:
