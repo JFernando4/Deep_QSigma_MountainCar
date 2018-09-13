@@ -170,12 +170,13 @@ if __name__ == "__main__":
     parser.add_argument('-ESvsQL', action='store_true', default=False)
     parser.add_argument('-nstep', action='store_true', default=False)
     parser.add_argument('-best_nstep', action='store_true', default=False)
+    parser.add_argument('-ds_comparison', action='store_true', default=False)
+    parser.add_argument('-tnetwork_comparison', action='store_true', default=False)
     """ Plot Types """
     parser.add_argument('-cumulative_avg', action='store_true', default=False)
     parser.add_argument('-moving_avg', action='store_true', default=False)
     parser.add_argument('-avg_per_episode', action='store_true', default=False)
     parser.add_argument('-interval_avg', action='store_true', default=False)
-    parser.add_argument('-ds_comparison', action='store_true', default=False)
     args = parser.parse_args()
 
 
@@ -476,6 +477,9 @@ if __name__ == "__main__":
                         '#d2eef1',  # Light Blue        - Modified DS
                         ]
 
+        ##################################
+        """Exponential vs Linear Decay """
+        ##################################
         method_names = ['DecayingSigma_n3',
                         'Linearly_DecayingSigma_n3',
                         ]
@@ -515,3 +519,9 @@ if __name__ == "__main__":
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         experiment_plot(method_data, args, name_suffix='n20')
+
+    #################################
+    """ Target Network Comparison """
+    #################################
+    if args.tnetwork_comparison:
+        pass
