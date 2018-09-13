@@ -43,6 +43,7 @@ class ExperimentAgent():
         self.compute_bprobabilities = experiment_parameters['compute_bprobabilities']
         self.anneal_epsilon = experiment_parameters['anneal_epsilon']
         self.store_sigma = experiment_parameters['store_sigma']
+        self.tnetwork_update_freq = experiment_parameters['tnetwork_update_freq']
 
         if restore:
             with open(os.path.join(restore_data_dir, 'experiment_config.p'), mode='rb') as experiment_config_file:
@@ -68,7 +69,7 @@ class ExperimentAgent():
             " Neural Network Parameters "
             self.config.alpha = 0.00025
             self.config.batch_sz = 32
-            self.config.tnetwork_update_freq = 1000     # 0.05 * buff_sz
+            self.config.tnetwork_update_freq = self.tnetwork_update_freq     # Default: 0.05 * buff_sz = 1,000
 
             " Experience Replay Buffer Parameters "
             self.config.buff_sz = 20000
@@ -282,6 +283,7 @@ if __name__ == "__main__":
     parser.add_argument('-dump_agent', action='store_false', default=True)
     parser.add_argument('-name', action='store', default='agent_1', type=str)
     parser.add_argument('-episodes', action='store', default=MAX_EPISODES - 1, type=np.int32)
+    parser.add_argument('-tnetwork_update_freq', action='store', default=1000, type=np.int32)
     parser.add_argument('-store_sigma', action='store_true', default=False)
     """ 
     Note:
