@@ -33,6 +33,7 @@ def compute_methods_statistics(results_path, method_names, method_data, colors, 
         upper_ci, lower_ci, _ = compute_tdist_confidence_interval(avg, std, 0.05, SAMPLE_SIZE)
         method_data[method_name]['return_data'] = return_data
         method_data[method_name]['avg'] = avg
+        method_data[method_name]['std'] = std
         method_data[method_name]['uci'] = upper_ci
         method_data[method_name]['lci'] = lower_ci
         method_data[method_name]['color'] = colors[i]
@@ -128,7 +129,7 @@ def format_data_for_interval_average_plot(methods_data, interval_size):
 
 
 def plot_interval_average(methods_data, ylim=(0,1), ytitle='ytitle', xtitle='xtitle', figure_name='figure_name',
-                          interval_size=50):
+                          interval_size=50, xticks=True, yticks=True, shaded=False):
     assert NUMBER_OF_EPISODES % interval_size == 0
     assert isinstance(methods_data, dict)
 
@@ -136,8 +137,23 @@ def plot_interval_average(methods_data, ylim=(0,1), ytitle='ytitle', xtitle='xti
     x = (np.arange(int(NUMBER_OF_EPISODES / interval_size)) + 1) * interval_size
 
     for name in plot_data.keys():
-        plt.errorbar(x, plot_data[name]['avg'], yerr=plot_data[name]['me'], color=methods_data[name]['color'])
-    plt.xlim([0, NUMBER_OF_EPISODES+10])
+        if shaded:
+            plt.plot(x, plot_data[name]['avg'], color=method_data[name]['color'])
+            plt.fill_between(x, plot_data[name]['avg'] - plot_data[name]['me'],
+                             plot_data[name]['avg'] + plot_data[name]['me'],
+                             color=methods_data[name]['shade_color'])
+        else:
+            plt.errorbar(x, plot_data[name]['avg'], yerr=plot_data[name]['me'], color=methods_data[name]['color'])
+
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    if not xticks:
+        locs, _ = plt.xticks()
+        plt.xticks(locs, [])
+    if not yticks:
+        locs, _ = plt.yticks()
+        plt.yticks(locs, [])
+
+    plt.xlim([-10, NUMBER_OF_EPISODES+10])
     plt.ylim(ylim)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
@@ -159,6 +175,7 @@ if __name__ == "__main__":
     parser.add_argument('-moving_avg', action='store_true', default=False)
     parser.add_argument('-avg_per_episode', action='store_true', default=False)
     parser.add_argument('-interval_avg', action='store_true', default=False)
+    parser.add_argument('-ds_comparison', action='store_true', default=False)
     args = parser.parse_args()
 
 
@@ -357,21 +374,6 @@ if __name__ == "__main__":
                                   xtitle='Episode Number', figure_name='nStep_DecayingSigma',
                                   interval_size=50)
 
-        # # Decaying Sigma HP SD#
-        # method_names = ['DecayingSigma_n1_sd0.99723126', 'DecayingSigma_n3_sd0.99723126',
-        #                 'DecayingSigma_n5_sd0.99723126', 'DecayingSigma_n10_sd0.99723126',
-        #                 'DecayingSigma_n20_sd0.99723126']
-        # method_data = {'DecayingSigma_n1_sd0.99723126': {},
-        #                'DecayingSigma_n3_sd0.99723126': {},
-        #                'DecayingSigma_n5_sd0.99723126': {},
-        #                'DecayingSigma_n10_sd0.99723126': {},
-        #                'DecayingSigma_n20_sd0.99723126': {}}
-        # compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        # if args.interval_avg:
-        #     plot_interval_average(methods_data=method_data, ylim=(-1500, -100),
-        #                           ytitle='Average Return Over the Last 50 Episodes',
-        #                           xtitle='Episode Number', figure_name='nStep_DecayingSigma_HP',
-        #                           interval_size=50)
 
     ##########################
     """ Best n-Step Methods """
@@ -447,3 +449,69 @@ if __name__ == "__main__":
                                   ytitle='Average Return Over the Last 50 Episodes',
                                   xtitle='Episode Number', figure_name='Best_nStep_Methods_Interval_Avg2',
                                   interval_size=50)
+
+    #################################
+    """ Decaying Sigma Comparison """
+    #################################
+    if args.ds_comparison:
+
+        def experiment_plot(method_data, args, name_suffix):
+            if args.avg_per_episode:
+                plot_avg_return_per_episode(method_data, ylim=(-600, -100), ytitle='Average Return per Episode',
+                                            xtitle='Episode Number',
+                                            figure_name='ds_comparison_avg_return_per_episode_' + name_suffix)
+
+            if args.interval_avg:
+                plot_interval_average(methods_data=method_data, ylim=(-600, -100),
+                                      ytitle='Average Return Over the Last 50 Episodes',
+                                      xtitle='Episode Number', figure_name='ds_comparison_interval_avg_' + name_suffix,
+                                      interval_size=10, shaded=True)
+
+        """ Experiment Colors """
+        colors = ['#E32551',  # Pink      - Original DS
+                  '#029DAF',  # Blue      - Modified DS
+                  ]
+
+        shade_colors = ['#fbd9e1',  # Light Pink        - Original DS
+                        '#d2eef1',  # Light Blue        - Modified DS
+                        ]
+
+        method_names = ['DecayingSigma_n3',
+                        'Linearly_DecayingSigma_n3',
+                        ]
+        method_data = {'DecayingSigma_n3': {},
+                       'Linearly_DecayingSigma_n3': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n3')
+
+        method_names = ['DecayingSigma_n5',
+                        'Linearly_DecayingSigma_n5',
+                        ]
+        method_data = {'DecayingSigma_n5': {},
+                       'Linearly_DecayingSigma_n5': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n5')
+
+        method_names = ['DecayingSigma_n10',
+                        'Linearly_DecayingSigma_n10',
+                        ]
+        method_data = {'DecayingSigma_n10': {},
+                       'Linearly_DecayingSigma_n10': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n10')
+
+        method_names = ['DecayingSigma_n20',
+                        'Linearly_DecayingSigma_n20',
+                        ]
+        method_data = {'DecayingSigma_n20': {},
+                       'Linearly_DecayingSigma_n20': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n20')
