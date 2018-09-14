@@ -12,5 +12,5 @@ do
     echo "Training Agent $i"
     python3 ./Experiments/Deep_QSigma_MC/dqsigman_mc.py -episodes 500 -n 3 -sigma 1 -beta 0.95 -store_sigma \
     -compute_bprobabilities -quiet -dump_agent -target_epsilon 0.1 -tnetwork_update_freq 2000 \
-    -name DecayingSigma_Tnet_Ufre2000_n3/agent_$i
+    -name DecayingSigma_Tnet_Ufreq2000_n3/agent_$i
 done
