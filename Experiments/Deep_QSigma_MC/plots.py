@@ -53,7 +53,7 @@ def plot_avg_return_per_episode(methods_data, ylim=(0, 1), ytitle='ytitle', xtit
     plt.ylim(ylim)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
-    plt.savefig(figure_name, dpi=200)
+    plt.savefig("Plots/" + figure_name, dpi=200)
     plt.close()
 
 
@@ -170,6 +170,7 @@ if __name__ == "__main__":
     parser.add_argument('-ESvsQL', action='store_true', default=False)
     parser.add_argument('-nstep', action='store_true', default=False)
     parser.add_argument('-best_nstep', action='store_true', default=False)
+    parser.add_argument('-sigma_decay_plot', action='store_true', default=False)
     parser.add_argument('-ds_comparison', action='store_true', default=False)
     parser.add_argument('-tnetwork_comparison', action='store_true', default=False)
     """ Plot Types """
@@ -451,6 +452,33 @@ if __name__ == "__main__":
                                   xtitle='Episode Number', figure_name='Best_nStep_Methods_Interval_Avg2',
                                   interval_size=50)
 
+    ########################
+    """ Sigma Decay Plot """
+    #####################$##
+    if args.sigma_decay_plot:
+
+        colors = ['#FF0066',    # Hot Pink      - Expected Sarsa
+                  '#C0ADDB']    # Purple        - QLearning
+
+        episode_number = np.arange(1,501)
+        linear_decay = np.ones(500, dtype=np.float64)
+        exponential_decay = np.ones(500, dtype=np.float64) * 0.95
+
+        for i in range(500):
+            linear_decay[i] = linear_decay[i] - (0.002 * i)
+            exponential_decay[i] = exponential_decay[i] ** i
+
+        sigma_decay_plot = plt.plot(episode_number, linear_decay, linewidth=1, color=colors[0])
+        sigma_decay_plot.append(plt.plot(episode_number, exponential_decay, linewidth=1, color=colors[1]))
+
+        plt.tick_params(axis='both', which='major', labelsize=14)
+
+        plt.xlim([0, 500])
+        plt.ylim([0,1])
+        plt.savefig('Plots/' + 'sigma_decay_plot', dpi=200)
+        plt.close()
+
+
     #################################
     """ Decaying Sigma Comparison """
     #################################
@@ -469,12 +497,12 @@ if __name__ == "__main__":
                                       interval_size=10, shaded=True)
 
         """ Experiment Colors """
-        colors = ['#E32551',  # Pink      - Original DS
-                  '#029DAF',  # Blue      - Modified DS
+        colors = ['#E32551',  # Pink            - Lin DS Tnetwork Update Freq 500
+                  '#029DAF',  # Blue            - Lin DS Tnetwork Update Freq 2000
                   ]
 
-        shade_colors = ['#fbd9e1',  # Light Pink        - Original DS
-                        '#d2eef1',  # Light Blue        - Modified DS
+        shade_colors = ['#fbdfe5',  # Light Pink        - Lin DS Tnetwork Update Freq 500
+                        '#d8f0f3',  # Light Blue        - Lin DS Tnetwork Update Freq 2000
                         ]
 
         ##################################
@@ -524,4 +552,82 @@ if __name__ == "__main__":
     """ Target Network Comparison """
     #################################
     if args.tnetwork_comparison:
-        pass
+
+        def experiment_plot(method_data, args, name_suffix, name_prefix=""):
+            if args.avg_per_episode:
+                plot_avg_return_per_episode(method_data, ylim=(-600, -100), ytitle='Average Return per Episode',
+                                            xtitle='Episode Number',
+                                            figure_name=name_prefix + 'tnetwork_comparison_avg_return_per_episode_'
+                                                        + name_suffix)
+
+            if args.interval_avg:
+                plot_interval_average(methods_data=method_data, ylim=(-600, -100),
+                                      ytitle='Average Return Over the Last 50 Episodes',
+                                      xtitle='Episode Number',
+                                      figure_name=name_prefix + 'tnetwork_comparison_interval_avg_' + name_suffix,
+                                      interval_size=10, shaded=True)
+
+        """ Experiment Colors """
+        colors = ['#E32551',  # Pink            - Lin DS Tnetwork Update Freq 500
+                  '#E97F02',  # Orange-ish      - Lin DS Tnetwork Update Freq 1000
+                  '#029DAF',  # Blue            - Lin DS Tnetwork Update Freq 2000
+                  ]
+
+        shade_colors = ['#fbdfe5',  # Light Pink        - Lin DS Tnetwork Update Freq 500
+                        '#fbebd7',  # Orange-ish        - Lin DS Tnetwork Update Freq 1000
+                        '#d8f0f3',  # Light Blue        - Lin DS Tnetwork Update Freq 2000
+                        ]
+
+        ############################
+        """ DS with Linear Decay """
+        ############################
+        method_names = ['Lin_DS_Tnet_Ufreq500_n3',
+                        'Linearly_DecayingSigma_n3',
+                        'Lin_DS_Tnet_Ufreq2000_n3',
+                        ]
+        method_data = {'Lin_DS_Tnet_Ufreq500_n3': {},
+                       'Linearly_DecayingSigma_n3': {},
+                       'Lin_DS_Tnet_Ufreq2000_n3': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n3', name_prefix='lin_ds')
+
+        method_names = ['Lin_DS_Tnet_Ufreq500_n20',
+                        'Linearly_DecayingSigma_n20',
+                        'Lin_DS_Tnet_Ufreq2000_n20',
+                        ]
+        method_data = {'Lin_DS_Tnet_Ufreq500_n20': {},
+                       'Linearly_DecayingSigma_n20': {},
+                       'Lin_DS_Tnet_Ufreq2000_n20': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n20', name_prefix='lin_ds')
+
+        #################################
+        """ DS wtih Exponential Decay """
+        #################################
+        method_names = ['DecayingSigma_Tnet_Ufreq500_n20',
+                        'DecayingSigma_n20',
+                        'DecayingSigma_Tnet_Ufreq2000_n20',
+                        ]
+        method_data = {'DecayingSigma_Tnet_Ufreq500_n20': {},
+                       'DecayingSigma_n20': {},
+                       'DecayingSigma_Tnet_Ufreq2000_n20': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n20', name_prefix='ds')
+
+        method_names = ['DecayingSigma_Tnet_Ufreq500_n3',
+                        'DecayingSigma_n3',
+                        'DecayingSigma_Tnet_Ufreq2000_n3',
+                        ]
+        method_data = {'DecayingSigma_Tnet_Ufreq500_n3': {},
+                       'DecayingSigma_n3': {},
+                       'DecayingSigma_Tnet_Ufreq2000_n3': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n3', name_prefix='ds_')
