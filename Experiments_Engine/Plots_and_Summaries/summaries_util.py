@@ -35,10 +35,10 @@ def create_results_file(pathname, columns, headers, title="", addtofile=False, r
     if addtofile:
         mode = 'a'
     with open(results_path, mode=mode) as results_file:
-        if not addtofile:
-            results_file.write("##########  " + title + "  ##########\n\n")
-            for header in headers:
-                results_file.write(header + "\t")
+        # if not addtofile:
+        results_file.write("\n##########  " + title + "  ##########\n\n")
+        for header in headers:
+            results_file.write(header + "\t")
         results_file.write('\n')
         for j in range(numrows):
             for i in range(numcolumns):
