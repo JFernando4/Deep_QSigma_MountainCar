@@ -5,15 +5,13 @@ import matplotlib.pyplot as plt
 import argparse
 from Experiments_Engine.Plots_and_Summaries import compute_tdist_confidence_interval
 
-SAMPLE_SIZE = 100
 NUMBER_OF_EPISODES = 500
 
-
-def retrieve_method_return_data(results_path, method_name):
+def retrieve_method_return_data(results_path, method_name, sample_size=100):
 
     method_results_path = os.path.join(results_path, method_name)
-    return_data = np.zeros(shape=(SAMPLE_SIZE, NUMBER_OF_EPISODES), dtype=np.float64)
-    for i in range(SAMPLE_SIZE):
+    return_data = np.zeros(shape=(sample_size, NUMBER_OF_EPISODES), dtype=np.float64)
+    for i in range(sample_size):
         agent_folder = os.path.join(method_results_path, 'agent_'+ str(i + 1))
         agent_results_filepath = os.path.join(agent_folder, 'results.p')
         with open(agent_results_filepath, mode='rb') as results_file:
@@ -24,13 +22,13 @@ def retrieve_method_return_data(results_path, method_name):
     return return_data
 
 
-def compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors):
+def compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=100):
     for i in range(len(method_names)):
         method_name = method_names[i]
-        return_data = retrieve_method_return_data(results_path, method_name)
+        return_data = retrieve_method_return_data(results_path, method_name, sample_size=sample_size)
         avg = np.average(return_data, axis=0)
         std = np.std(return_data, axis=0, ddof=1)
-        upper_ci, lower_ci, _ = compute_tdist_confidence_interval(avg, std, 0.05, SAMPLE_SIZE)
+        upper_ci, lower_ci, _ = compute_tdist_confidence_interval(avg, std, 0.05, sample_size)
         method_data[method_name]['return_data'] = return_data
         method_data[method_name]['avg'] = avg
         method_data[method_name]['std'] = std
@@ -53,7 +51,7 @@ def plot_avg_return_per_episode(methods_data, ylim=(0, 1), ytitle='ytitle', xtit
     plt.ylim(ylim)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
-    plt.savefig(figure_name, dpi=200)
+    plt.savefig("Plots/" + figure_name, dpi=200)
     plt.close()
 
 
@@ -99,7 +97,7 @@ def plot_moving_average(methods_data, ylim=(0,1), ytitle='ytitle', xtitle='xtitl
     plt.close()
 
 
-def format_data_for_interval_average_plot(methods_data, interval_size):
+def format_data_for_interval_average_plot(methods_data, interval_size, sample_size=100):
     plot_data = {}
     for name in methods_data.keys():
         plot_data[name] = {}
@@ -112,11 +110,12 @@ def format_data_for_interval_average_plot(methods_data, interval_size):
         for i in range(int(NUMBER_OF_EPISODES / interval_size)):
             # avg across (interval_size) episodes
             data_at_interval = np.average(methods_data[name]['return_data'][:, index:index + interval_size], axis=1)
+            assert len(data_at_interval) == sample_size
             interval_avg = np.average(data_at_interval)  # avg across (sample_size) runs
             interval_std = np.std(data_at_interval, ddof=1)  # std across (sample_size) runs
             interval_uci, interval_lci, margin_of_error = compute_tdist_confidence_interval(interval_avg,
                                                                                             interval_std, 0.05,
-                                                                                            SAMPLE_SIZE)
+                                                                                            sample_size)
             data_index = int(index / interval_size)
             interval_avg_data[data_index] = interval_avg
             interval_std_data[data_index] = interval_std
@@ -129,11 +128,11 @@ def format_data_for_interval_average_plot(methods_data, interval_size):
 
 
 def plot_interval_average(methods_data, ylim=(0,1), ytitle='ytitle', xtitle='xtitle', figure_name='figure_name',
-                          interval_size=50, xticks=True, yticks=True, shaded=False):
+                          interval_size=50, xticks=True, yticks=True, shaded=False, sample_size=100):
     assert NUMBER_OF_EPISODES % interval_size == 0
     assert isinstance(methods_data, dict)
 
-    plot_data = format_data_for_interval_average_plot(methods_data, interval_size)
+    plot_data = format_data_for_interval_average_plot(methods_data, interval_size, sample_size=sample_size)
     x = (np.arange(int(NUMBER_OF_EPISODES / interval_size)) + 1) * interval_size
 
     for name in plot_data.keys():
@@ -145,16 +144,16 @@ def plot_interval_average(methods_data, ylim=(0,1), ytitle='ytitle', xtitle='xti
         else:
             plt.errorbar(x, plot_data[name]['avg'], yerr=plot_data[name]['me'], color=methods_data[name]['color'])
 
-    plt.tick_params(axis='both', which='major', labelsize=14)
-    if not xticks:
-        locs, _ = plt.xticks()
-        plt.xticks(locs, [])
-    if not yticks:
-        locs, _ = plt.yticks()
-        plt.yticks(locs, [])
-
-    plt.xlim([-10, NUMBER_OF_EPISODES+10])
     plt.ylim(ylim)
+    if not xticks:
+        xlocs, _ = plt.xticks()
+        plt.xticks(xlocs, [])
+    if not yticks:
+        ylocs, _ = plt.yticks()
+        plt.yticks(ylocs, [])
+
+    plt.tick_params(axis='both', which='major', labelsize=14)
+    plt.xlim([-10, NUMBER_OF_EPISODES+10])
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
     plt.savefig('Plots/' + figure_name, dpi=200)
@@ -170,6 +169,7 @@ if __name__ == "__main__":
     parser.add_argument('-ESvsQL', action='store_true', default=False)
     parser.add_argument('-nstep', action='store_true', default=False)
     parser.add_argument('-best_nstep', action='store_true', default=False)
+    parser.add_argument('-sigma_decay_plot', action='store_true', default=False)
     parser.add_argument('-ds_comparison', action='store_true', default=False)
     parser.add_argument('-tnetwork_comparison', action='store_true', default=False)
     """ Plot Types """
@@ -182,7 +182,6 @@ if __name__ == "__main__":
 
     experiment_path = os.getcwd()
     results_path = os.path.join(experiment_path, "Results")
-    sample_size = 100
     # std = standard deviation, avg = average, uci = upper confidence interval, lci = lower confidence interval
     # me = margin of error
 
@@ -385,25 +384,29 @@ if __name__ == "__main__":
                   '#BD1550',  # Red-ish         - QSigma 0.5 n20
                   '#E97F02',  # Orange-ish      - TreeBackup n20
                   '#F8CA00',  # Yellow-ish      - DecayingSigma n20
-                  '#8A9B0F',  # Green-ish       - DecayingSigma Hand Picked SD n10
-                  '#C0ADDB']  # Violet-ish      - QLearning
+                  '#8A9B0F',  # Green-ish       -
+                  '#C0ADDB']  # Violet-ish      -
 
         shade_colors = ['#c9bac6',  # Purple-ish        - Sarsa n20
                         '#eab8ca',  # Red-ish           - QSigma 0.5 n20
                         '#f8d8b3',  # Orange-ish        - TreeBackup n20
                         '#f4e8b9',  # Yellow-ish        - DecayingSigma n20
-                        '#dde2b8',  # Green-ish         - DecayingSigma HP SD n10
-                        "#e8e0f2"   # Violet-ish        - QLearning
+                        '#dde2b8',  # Green-ish         -
+                        "#e8e0f2"   # Violet-ish        -
                         ]
 
-        method_names = ['Sarsa_n20', 'QSigma0.5_n20', 'TreeBackup_n20', 'DecayingSigma_n20', "DecayingSigma_hp_n20",
-                        "QLearning"]
-        method_data = {'Sarsa_n20': {},
-                       'QSigma0.5_n20': {},
-                       'TreeBackup_n20': {},
-                       'DecayingSigma_hp_n20': {},
-                       'DecayingSigma_n20': {},
-                       'QLearning': {}}
+        method_names = [
+            'Sarsa_n20',
+            'QSigma0.5_Tnet_Ufreq500_n20',
+            'TreeBackup_Tnet_Ufreq500_n20',
+            "Lin_DS_Tnet_Ufreq500_n20"
+        ]
+        method_data = {
+            'Sarsa_n20': {},
+            'QSigma0.5_Tnet_Ufreq500_n20': {},
+            'TreeBackup_Tnet_Ufreq500_n20': {},
+            "Lin_DS_Tnet_Ufreq500_n20": {}
+        }
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.avg_per_episode:
@@ -416,65 +419,62 @@ if __name__ == "__main__":
             plot_moving_average(method_data, ylim=(-500,-100), ytitle='Cumulative Average Return', xtitle='Episode Number',
                                 figure_name='Best_nStep_Methods_Moving_Avg', window=50)
         if args.interval_avg:
-            plot_interval_average(methods_data=method_data, ylim=(-500,-100),
+            plot_interval_average(methods_data=method_data, ylim=(-350,-100),
                                   ytitle='Average Return Over the Last 50 Episodes',
-                                  xtitle='Episode Number', figure_name='Best_nStep_Methods_Interval_Avg1',
-                                  interval_size=50)
+                                  xtitle='Episode Number', figure_name='Best_nStep_Methods_Interval_Avg',
+                                  interval_size=50, shaded=False, sample_size=100)
 
-        """ Experiment Colors """
-        colors = ['#490A3D',  # Purple-ish      - Sarsa n20
-                  '#BD1550',  # Red-ish         - QSigma 0.5 n20
-                  '#E97F02',  # Orange-ish      - TreeBackup n20
-                  '#F8CA00',  # Yellow-ish      - DecayingSigma n20
-                  '#8A9B0F',  # Green-ish       - DecayingSigma Hand Picked SD n10
-                  '#C0ADDB']  # Violet-ish      - QLearning
+    ########################
+    """ Sigma Decay Plot """
+    #####################$##
+    if args.sigma_decay_plot:
 
-        shade_colors = ['#c9bac6',  # Purple-ish        - Sarsa n20
-                        '#eab8ca',  # Red-ish           - QSigma 0.5 n20
-                        '#f8d8b3',  # Orange-ish        - TreeBackup n20
-                        '#f4e8b9',  # Yellow-ish        - DecayingSigma n20
-                        '#dde2b8',  # Green-ish         - DecayingSigma HP SD n10
-                        "#e8e0f2"   # Violet-ish        - QLearning
-                        ]
+        colors = ['#FF0066',    # Hot Pink      - Expected Sarsa
+                  '#C0ADDB']    # Purple        - QLearning
 
-        # method_names = ['Sarsa_n10', 'QSigma0.5_n20', 'TreeBackup_n20', 'DecayingSigma_n10_sd0.99723126', "QLearning"]
-        # method_data = {'Sarsa_n10': {},
-        #                'QSigma0.5_n20': {},
-        #                'TreeBackup_n20': {},
-        #                'DecayingSigma_n10_sd0.99723126': {},
-        #                'QLearning': {}}
-        #
-        # compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        if args.interval_avg:
-            plot_interval_average(methods_data=method_data, ylim=(-500,-100),
-                                  ytitle='Average Return Over the Last 50 Episodes',
-                                  xtitle='Episode Number', figure_name='Best_nStep_Methods_Interval_Avg2',
-                                  interval_size=50)
+        episode_number = np.arange(1,501)
+        linear_decay = np.ones(500, dtype=np.float64)
+        exponential_decay = np.ones(500, dtype=np.float64) * 0.95
+
+        for i in range(500):
+            linear_decay[i] = linear_decay[i] - (0.002 * i)
+            exponential_decay[i] = exponential_decay[i] ** i
+
+        sigma_decay_plot = plt.plot(episode_number, linear_decay, linewidth=1, color=colors[0])
+        sigma_decay_plot.append(plt.plot(episode_number, exponential_decay, linewidth=1, color=colors[1]))
+
+        plt.tick_params(axis='both', which='major', labelsize=14)
+
+        plt.xlim([0, 500])
+        plt.ylim([0,1])
+        plt.savefig('Plots/' + 'sigma_decay_plot', dpi=200)
+        plt.close()
 
     #################################
     """ Decaying Sigma Comparison """
     #################################
     if args.ds_comparison:
 
-        def experiment_plot(method_data, args, name_suffix):
+        def experiment_plot(method_data, args, name_suffix, xticks=True, yticks=True, sample_size=100):
             if args.avg_per_episode:
-                plot_avg_return_per_episode(method_data, ylim=(-600, -100), ytitle='Average Return per Episode',
+                plot_avg_return_per_episode(method_data, ylim=(-500, -100), ytitle='Average Return per Episode',
                                             xtitle='Episode Number',
                                             figure_name='ds_comparison_avg_return_per_episode_' + name_suffix)
 
             if args.interval_avg:
-                plot_interval_average(methods_data=method_data, ylim=(-600, -100),
+                plot_interval_average(methods_data=method_data, ylim=(-500, -100),
                                       ytitle='Average Return Over the Last 50 Episodes',
                                       xtitle='Episode Number', figure_name='ds_comparison_interval_avg_' + name_suffix,
-                                      interval_size=10, shaded=True)
+                                      interval_size=10, shaded=True, xticks=xticks, yticks=yticks,
+                                      sample_size=sample_size)
 
         """ Experiment Colors """
-        colors = ['#E32551',  # Pink      - Original DS
-                  '#029DAF',  # Blue      - Modified DS
+        colors = ['#E32551',  # Pink            - Decaying Sigma with Exponential Decay
+                  '#029DAF',  # Blue            - Decaying Sigma with Linear Decay
                   ]
 
-        shade_colors = ['#fbd9e1',  # Light Pink        - Original DS
-                        '#d2eef1',  # Light Blue        - Modified DS
+        shade_colors = ['#fbdfe5',  # Light Pink        - Decaying Sigma with Exponential Decay
+                        '#d8f0f3',  # Light Blue        - Decaying Sigma with Linear Decay
                         ]
 
         ##################################
@@ -487,8 +487,8 @@ if __name__ == "__main__":
                        'Linearly_DecayingSigma_n3': {},
                        }
 
-        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        experiment_plot(method_data, args, name_suffix='n3')
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=250)
+        experiment_plot(method_data, args, name_suffix='n3', xticks=False, sample_size=250)
 
         method_names = ['DecayingSigma_n5',
                         'Linearly_DecayingSigma_n5',
@@ -498,7 +498,7 @@ if __name__ == "__main__":
                        }
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        experiment_plot(method_data, args, name_suffix='n5')
+        experiment_plot(method_data, args, name_suffix='n5', xticks=False, yticks=False)
 
         method_names = ['DecayingSigma_n10',
                         'Linearly_DecayingSigma_n10',
@@ -518,10 +518,88 @@ if __name__ == "__main__":
                        }
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        experiment_plot(method_data, args, name_suffix='n20')
+        experiment_plot(method_data, args, name_suffix='n20', yticks=False)
 
     #################################
     """ Target Network Comparison """
     #################################
     if args.tnetwork_comparison:
-        pass
+
+        def experiment_plot(method_data, args, name_suffix, name_prefix="", xticks=True, yticks=True):
+            if args.avg_per_episode:
+                plot_avg_return_per_episode(method_data, ylim=(-400, -100), ytitle='Average Return per Episode',
+                                            xtitle='Episode Number',
+                                            figure_name=name_prefix + 'tnetwork_comparison_avg_return_per_episode_'
+                                                        + name_suffix)
+
+            if args.interval_avg:
+                plot_interval_average(methods_data=method_data, ylim=(-400, -100),
+                                      ytitle='Average Return Over the Last 50 Episodes',
+                                      xtitle='Episode Number',
+                                      figure_name=name_prefix + 'tnetwork_comparison_interval_avg_' + name_suffix,
+                                      interval_size=10, shaded=True, xticks=xticks, yticks=yticks)
+
+        """ Experiment Colors """
+        colors = ['#E32551',  # Pink            - Lin DS Tnetwork Update Freq 500
+                  '#E97F02',  # Orange-ish      - Lin DS Tnetwork Update Freq 1000
+                  '#029DAF',  # Blue            - Lin DS Tnetwork Update Freq 2000
+                  ]
+
+        shade_colors = ['#fbdfe5',  # Light Pink        - Lin DS Tnetwork Update Freq 500
+                        '#fbebd7',  # Orange-ish        - Lin DS Tnetwork Update Freq 1000
+                        '#d8f0f3',  # Light Blue        - Lin DS Tnetwork Update Freq 2000
+                        ]
+
+        ############################
+        """ DS with Linear Decay """
+        ############################
+        method_names = ['Lin_DS_Tnet_Ufreq500_n3',
+                        'Linearly_DecayingSigma_n3',
+                        'Lin_DS_Tnet_Ufreq2000_n3',
+                        ]
+        method_data = {'Lin_DS_Tnet_Ufreq500_n3': {},
+                       'Linearly_DecayingSigma_n3': {},
+                       'Lin_DS_Tnet_Ufreq2000_n3': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n3', name_prefix='lin_ds_')
+
+        method_names = ['Lin_DS_Tnet_Ufreq500_n20',
+                        'Linearly_DecayingSigma_n20',
+                        'Lin_DS_Tnet_Ufreq2000_n20',
+                        ]
+        method_data = {'Lin_DS_Tnet_Ufreq500_n20': {},
+                       'Linearly_DecayingSigma_n20': {},
+                       'Lin_DS_Tnet_Ufreq2000_n20': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n20', name_prefix='lin_ds_', yticks=False)
+
+        #################################
+        """ DS wtih Exponential Decay """
+        #################################
+        method_names = ['DecayingSigma_Tnet_Ufreq500_n20',
+                        'DecayingSigma_n20',
+                        'DecayingSigma_Tnet_Ufreq2000_n20',
+                        ]
+        method_data = {'DecayingSigma_Tnet_Ufreq500_n20': {},
+                       'DecayingSigma_n20': {},
+                       'DecayingSigma_Tnet_Ufreq2000_n20': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n20', name_prefix='ds', yticks=False, xticks=False)
+
+        method_names = ['DecayingSigma_Tnet_Ufreq500_n3',
+                        'DecayingSigma_n3',
+                        'DecayingSigma_Tnet_Ufreq2000_n3',
+                        ]
+        method_data = {'DecayingSigma_Tnet_Ufreq500_n3': {},
+                       'DecayingSigma_n3': {},
+                       'DecayingSigma_Tnet_Ufreq2000_n3': {},
+                       }
+
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        experiment_plot(method_data, args, name_suffix='n3', name_prefix='ds_', xticks=False)
