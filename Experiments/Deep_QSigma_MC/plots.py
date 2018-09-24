@@ -518,8 +518,9 @@ if __name__ == "__main__":
                        'Linearly_DecayingSigma_n20': {},
                        }
 
-        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        experiment_plot(method_data, args, name_suffix='n20', yticks=False)
+        samp_size = 1000
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=samp_size)
+        experiment_plot(method_data, args, name_suffix='n20', yticks=False, sample_size=samp_size)
 
     #################################
     """ Target Network Comparison """

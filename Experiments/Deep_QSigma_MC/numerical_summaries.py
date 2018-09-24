@@ -157,6 +157,7 @@ if __name__ == "__main__":
     parser.add_argument('-use_ste', action='store_true', default=False)
     parser.add_argument('-numerical_summaries', action='store_true', default=False)
     parser.add_argument('-ds_comparison', action='store_true', default=False)
+    parser.add_argument('-var_analysis', action='store_true', default=False)
     args = parser.parse_args()
 
     experiment_path = os.getcwd()
@@ -184,6 +185,14 @@ if __name__ == "__main__":
                 'name': 'Linearly_DecayingSigma_n3',
                 'interval': (160, 230)    # avg window = 10
                 # 'interval': (160, 250)      # avg window = 20
+            },
+            {
+                'name': 'DecayingSigma_n20',
+                'interval': (110, 140)  # avg window = 10
+            },
+            {
+                'name': 'Linearly_DecayingSigma_n20',
+                'interval': (100, 210)  # avg window = 10
             },
         ]
 
@@ -214,3 +223,33 @@ if __name__ == "__main__":
         avg_window = args.avg_window
         retrieve_data_for_ds_comparison(results_path, methods[0], sample_size=1000, average_window=avg_window)
         retrieve_data_for_ds_comparison(results_path, methods[1], sample_size=1000, average_window=avg_window)
+        retrieve_data_for_ds_comparison(results_path, methods[2], sample_size=1000, average_window=avg_window)
+        retrieve_data_for_ds_comparison(results_path, methods[3], sample_size=1000, average_window=avg_window)
+
+    if args.var_analysis:
+
+        methods = [
+            'DecayingSigma_Tnet_Ufreq500_n3',
+            'DecayingSigma_n3',
+            'DecayingSigma_Tnet_Ufre2000_n3',
+            'DecayingSigma_Tnet_Ufreq500_n20',
+            'DecayingSigma_n20',
+            'DecayingSigma_Tnet_Ufreq2000_n20',
+            'Lin_DS_Tnet_Ufreq500_n3',
+            'Linearly_DecayingSigma_n3',
+            'Lin_DS_Tnet_Ufreq2000_n3',
+            'Lin_DS_Tnet_Ufreq500_n20',
+            'Linearly_DecayingSigma_n20',
+            'Lin_DS_Tnet_Ufreq2000_n20',
+        ]
+
+        sample_size = 100
+
+        def variance_analysis(method, results_path, sample_size):
+            method_data = np.array(get_agents_data(results_path, method, sample_size), dtype=np.float64)
+
+
+
+            pass
+
+        pass
