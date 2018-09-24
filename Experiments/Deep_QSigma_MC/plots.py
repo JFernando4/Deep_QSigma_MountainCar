@@ -487,8 +487,9 @@ if __name__ == "__main__":
                        'Linearly_DecayingSigma_n3': {},
                        }
 
-        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=250)
-        experiment_plot(method_data, args, name_suffix='n3', xticks=False, sample_size=250)
+        samp_size = 1000
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=samp_size)
+        experiment_plot(method_data, args, name_suffix='n3', xticks=False, sample_size=samp_size)
 
         method_names = ['DecayingSigma_n5',
                         'Linearly_DecayingSigma_n5',
