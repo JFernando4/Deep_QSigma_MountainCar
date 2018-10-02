@@ -3,7 +3,8 @@ import pickle
 import numpy as np
 import argparse
 
-from Experiments_Engine.Plots_and_Summaries import compute_tdist_confidence_interval, create_results_file
+from Experiments_Engine.Plots_and_Summaries import compute_tdist_confidence_interval, create_results_file, \
+    compute_chi2dist_confidence_interval
 
 
 def get_agents_data(results_path, method_name, sample_size=100):
@@ -179,20 +180,38 @@ if __name__ == "__main__":
             {
                 'name': 'DecayingSigma_n3',
                 'interval': (120, 190)    # avg window = 10
-                # 'interval': (140, 200)      # avg window = 20
             },
             {
                 'name': 'Linearly_DecayingSigma_n3',
                 'interval': (160, 230)    # avg window = 10
-                # 'interval': (160, 250)      # avg window = 20
+            },
+            {
+                'name': 'DecayingSigma_n5',
+                'interval': (110, 170)  # avg window = 10
+            },
+            {
+                'name': 'Linearly_DecayingSigma_n5',
+                'interval': (130, 190)  # avg window = 10
+            },
+            {
+                'name': 'DecayingSigma_n10',
+                # 'interval': (100, 130),  # avg window = 10 # sample = 1,000
+                'interval': (100, 130)  # avg window = 10 # sample = 1,200
+            },
+            {
+                'name': 'Linearly_DecayingSigma_n10',
+                'interval': (110, 210)  # avg window = 10 # sample = 1,000
+                # 'interval': (110, 210)  # avg window = 10 # sample = 1,200
             },
             {
                 'name': 'DecayingSigma_n20',
-                'interval': (110, 140)  # avg window = 10
+                'interval': (110, 140)  # avg window = 10   # sample = 1,000
+                # 'interval': (110, 140)  # avg window = 10 # sample = 1,200
             },
             {
                 'name': 'Linearly_DecayingSigma_n20',
-                'interval': (100, 210)  # avg window = 10
+                'interval': (100, 210)  # avg window = 10   # sample = 1,000
+                # 'interval': (100, 210) # avg window = 10  # sample = 1,200
             },
         ]
 
@@ -221,17 +240,16 @@ if __name__ == "__main__":
             print('--------------------------------------------------------')
 
         avg_window = args.avg_window
-        retrieve_data_for_ds_comparison(results_path, methods[0], sample_size=1000, average_window=avg_window)
-        retrieve_data_for_ds_comparison(results_path, methods[1], sample_size=1000, average_window=avg_window)
-        retrieve_data_for_ds_comparison(results_path, methods[2], sample_size=1000, average_window=avg_window)
-        retrieve_data_for_ds_comparison(results_path, methods[3], sample_size=1000, average_window=avg_window)
+        for i in range(len(methods)):
+            retrieve_data_for_ds_comparison(results_path, methods[i], sample_size=1200, average_window=avg_window)
+
 
     if args.var_analysis:
 
         methods = [
             'DecayingSigma_Tnet_Ufreq500_n3',
             'DecayingSigma_n3',
-            'DecayingSigma_Tnet_Ufre2000_n3',
+            'DecayingSigma_Tnet_Ufreq2000_n3',
             'DecayingSigma_Tnet_Ufreq500_n20',
             'DecayingSigma_n20',
             'DecayingSigma_Tnet_Ufreq2000_n20',
@@ -247,9 +265,23 @@ if __name__ == "__main__":
 
         def variance_analysis(method, results_path, sample_size):
             method_data = np.array(get_agents_data(results_path, method, sample_size), dtype=np.float64)
+            average_data = np.average(method_data, axis=1)
+            sample_variance = np.var(average_data, ddof=1)
 
+            proportion = 0.05
+            upper_ci, lower_ci = compute_chi2dist_confidence_interval(sample_variance, proportion, sample_size)
 
+            sample_std = np.round(np.sqrt(sample_variance), 2)
+            std_upper_ci = np.round(np.sqrt(upper_ci), 2)
+            std_lower_ci = np.round(np.sqrt(lower_ci), 2)
 
-            pass
+            print('--------------------------------------------------------')
+            print('Method Name:', method)
+            print('Sample Variance:', np.round(sample_variance, 2) )
+            print('Variance Confidence Interval:', (np.round(lower_ci, 2), np.round(upper_ci, 2)))
+            print('Sample Standard Deviation:', sample_std)
+            print('Standard Deviation Confidence Interval:', (std_lower_ci, std_upper_ci))
+            print('--------------------------------------------------------')
 
-        pass
+        for method in methods:
+            variance_analysis(method, results_path, sample_size)

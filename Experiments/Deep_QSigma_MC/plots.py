@@ -380,18 +380,16 @@ if __name__ == "__main__":
     ##########################
     if args.best_nstep:
         """ Experiment Colors """
-        colors = ['#490A3D',  # Purple-ish      - Sarsa n20
+        colors = ['#8A9B0F',  # Green-ish       - Sarsa n20
                   '#BD1550',  # Red-ish         - QSigma 0.5 n20
                   '#E97F02',  # Orange-ish      - TreeBackup n20
                   '#F8CA00',  # Yellow-ish      - DecayingSigma n20
-                  '#8A9B0F',  # Green-ish       -
                   '#C0ADDB']  # Violet-ish      -
 
-        shade_colors = ['#c9bac6',  # Purple-ish        - Sarsa n20
+        shade_colors = ['#dde2b8',  # Green-ish         - Sarsa n20
                         '#eab8ca',  # Red-ish           - QSigma 0.5 n20
                         '#f8d8b3',  # Orange-ish        - TreeBackup n20
                         '#f4e8b9',  # Yellow-ish        - DecayingSigma n20
-                        '#dde2b8',  # Green-ish         -
                         "#e8e0f2"   # Violet-ish        -
                         ]
 
@@ -487,7 +485,7 @@ if __name__ == "__main__":
                        'Linearly_DecayingSigma_n3': {},
                        }
 
-        samp_size = 1000
+        samp_size = 1200
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=samp_size)
         experiment_plot(method_data, args, name_suffix='n3', xticks=False, sample_size=samp_size)
 
@@ -498,8 +496,8 @@ if __name__ == "__main__":
                        'Linearly_DecayingSigma_n5': {},
                        }
 
-        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        experiment_plot(method_data, args, name_suffix='n5', xticks=False, yticks=False)
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=samp_size)
+        experiment_plot(method_data, args, name_suffix='n5', xticks=False, yticks=False, sample_size=samp_size)
 
         method_names = ['DecayingSigma_n10',
                         'Linearly_DecayingSigma_n10',
@@ -508,8 +506,8 @@ if __name__ == "__main__":
                        'Linearly_DecayingSigma_n10': {},
                        }
 
-        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
-        experiment_plot(method_data, args, name_suffix='n10')
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=samp_size)
+        experiment_plot(method_data, args, name_suffix='n10', sample_size=samp_size)
 
         method_names = ['DecayingSigma_n20',
                         'Linearly_DecayingSigma_n20',
@@ -518,7 +516,6 @@ if __name__ == "__main__":
                        'Linearly_DecayingSigma_n20': {},
                        }
 
-        samp_size = 1000
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors, sample_size=samp_size)
         experiment_plot(method_data, args, name_suffix='n20', yticks=False, sample_size=samp_size)
 
