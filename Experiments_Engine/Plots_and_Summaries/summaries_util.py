@@ -41,6 +41,37 @@ def compute_chi2dist_confidence_interval(sample_variance, proportion, sample_siz
     return upper_bound_ci, lower_bound_ci
 
 
+# Welch's Test for Difference in Averages
+def compute_welchs_test(mean1, std1, sample_size1, mean2, std2, sample_size2):
+    mean_difference = mean1 - mean2
+    sum_of_stds = ((std1 ** 2) / sample_size1) + ((std2 ** 2) / sample_size2)
+    tdenominator = np.sqrt(sum_of_stds)
+    if tdenominator == 0:
+        tvalue = 0; p_value = 0
+        if mean1 > mean2:
+            tvalue = np.inf
+            p_value = 1
+        elif mean2 > mean1:
+            tvalue = -np.inf
+            p_value = 0
+        elif mean2 == mean1:
+            tvalue = 0
+            p_value = 0.5
+    else:
+        tvalue = mean_difference / tdenominator
+
+        dof_numerator = sum_of_stds ** 2
+        dof_sample1 = sample_size1 - 1
+        dof_sample2 = sample_size2 - 1
+        dof_denominator = ((std1 ** 4) / (dof_sample1 * (sample_size2 ** 2))) + \
+                          ((std2 ** 4) / (dof_sample2 * (sample_size2 ** 2)))
+        dof = dof_numerator / dof_denominator
+
+        t_dist = t(df=dof)  # from scipy.stats
+        p_value = t_dist.pdf(tvalue)
+    return tvalue, p_value
+
+
 # Create Results File
 def create_results_file(pathname, columns, headers, title="", addtofile=False, results_name="results"):
     numrows = len(columns[0])
