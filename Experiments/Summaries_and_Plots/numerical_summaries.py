@@ -4,7 +4,7 @@ import numpy as np
 import argparse
 
 from Experiments_Engine.Plots_and_Summaries import compute_tdist_confidence_interval, create_results_file, \
-    compute_chi2dist_confidence_interval
+    compute_chi2dist_confidence_interval, compute_welchs_test
 
 
 def get_agents_data(results_path, method_name, sample_size=100):
@@ -159,6 +159,8 @@ if __name__ == "__main__":
     parser.add_argument('-numerical_summaries', action='store_true', default=False)
     parser.add_argument('-ds_comparison', action='store_true', default=False)
     parser.add_argument('-var_analysis', action='store_true', default=False)
+    parser.add_argument('-offpolicy_welch_test', action='store_true', default=False)
+    parser.add_argument('-tnetwork_welch_test', action='store_true', default=False)
     args = parser.parse_args()
 
     experiment_path = os.getcwd()
@@ -243,7 +245,6 @@ if __name__ == "__main__":
         for i in range(len(methods)):
             retrieve_data_for_ds_comparison(results_path, methods[i], sample_size=1200, average_window=avg_window)
 
-
     if args.var_analysis:
 
         methods = [
@@ -285,3 +286,106 @@ if __name__ == "__main__":
 
         for method in methods:
             variance_analysis(method, results_path, sample_size)
+
+    if args.offpolicy_welch_test:
+
+        methods_list = [
+            ('QSigma0.5_OnPolicy', 'QSigma0.5_OffPolicy'),
+            ('Sarsa_OnPolicy', 'Sarsa_OffPolicy'),
+            ('Linearly_DecayingSigma_n1', 'Linearly_DecayingSigma_OffPolicy')
+        ]
+
+        sample_size = args.max_sample_size
+
+        def difference_in_mean_analysis(methods, results_path, sample_size):
+            method1_data = np.array(get_agents_data(results_path, methods[0], sample_size), dtype=np.float64)
+            average_data1 = np.average(method1_data, axis=1)
+            sample_average1 = np.average(average_data1)
+            sample_std1 = np.std(average_data1, ddof=1)
+
+            method2_data = np.array(get_agents_data(results_path, methods[1], sample_size), dtype=np.float64)
+            average_data2 = np.average(method2_data, axis=1)
+            sample_average2 = np.average(average_data2)
+            sample_std2 = np.std(average_data2, ddof=1)
+
+            tvalue, pvalue = compute_welchs_test(sample_average1, sample_std1, sample_size,
+                                                 sample_average2, sample_std2, sample_size)
+
+            print('--------------------------------------------------------')
+            print('Method 1 Name:', methods[0])
+            print('\tSample Average:', np.round(sample_average1, 2))
+            print('\tSample STandard deviation:', np.round(sample_std1, 2))
+            print('Method 2 Name:', methods[1])
+            print('\tSample Average:', np.round(sample_average2, 2))
+            print('\tSample STandard deviation:', np.round(sample_std2, 2))
+            print('The p-value is:', pvalue)
+            print('The t-value is:', np.round(tvalue, 4))
+            print('--------------------------------------------------------')
+
+        for methods in methods_list:
+            difference_in_mean_analysis(methods, results_path, sample_size)
+
+    if args.tnetwork_welch_test:
+
+        methods_list = [
+            ('QSigma0.5_Tnet_Ufreq500_n20', 'QSigma0.5_n20', 'QSigma0.5_Tnet_Ufreq2000_n20'),
+            ('Retrace_Tnet_Ufreq500_n20', 'Retrace_n20', 'Retrace_Tnet_Ufreq2000_n20'),
+            ('Sarsa_Tnet_Ufreq500_n20', 'Sarsa_n20', 'Sarsa_Tnet_Ufreq2000_n20'),
+            ('TreeBackup_Tnet_Ufreq500_n20', 'TreeBackup_n20', 'TreeBackup_Tnet_Ufreq2000_n20'),
+            ('Lin_DS_Tnet_Ufreq500_n20', 'Linearly_DecayingSigma_n20', 'Lin_DS_Tnet_Ufreq2000_n20'),
+            ('QLearning_Tnet_Ufreq500_n20', 'QLearning_n20', 'QLearning_Tnet_Ufreq2000_n20')
+        ]
+
+        sample_size = args.max_sample_size
+
+        def difference_in_mean_analysis(methods, results_path, sample_size):
+            method1_data = np.array(get_agents_data(results_path, methods[0], sample_size), dtype=np.float64)
+            average_data1 = np.average(method1_data, axis=1)
+            sample_average1 = np.average(average_data1)
+            sample_std1 = np.std(average_data1, ddof=1)
+
+            method2_data = np.array(get_agents_data(results_path, methods[1], sample_size), dtype=np.float64)
+            average_data2 = np.average(method2_data, axis=1)
+            sample_average2 = np.average(average_data2)
+            sample_std2 = np.std(average_data2, ddof=1)
+
+            method3_data = np.array(get_agents_data(results_path, methods[2], sample_size), dtype=np.float64)
+            average_data3 = np.average(method3_data, axis=1)
+            sample_average3 = np.average(average_data3)
+            sample_std3 = np.std(average_data3, ddof=1)
+
+            tvalue1, pvalue1 = compute_welchs_test(sample_average1, sample_std1, sample_size,
+                                                   sample_average2, sample_std2, sample_size)
+
+            tvalue2, pvalue2 = compute_welchs_test(sample_average1, sample_std1, sample_size,
+                                                   sample_average3, sample_std3, sample_size)
+
+            tvalue3, pvalue3 = compute_welchs_test(sample_average2, sample_std2, sample_size,
+                                                   sample_average3, sample_std3, sample_size)
+
+            print('--------------------------------------------------------')
+            print('Method 1 Name:', methods[0])
+            print('\tSample Average:', np.round(sample_average1, 2))
+            print('\tSample STandard deviation:', np.round(sample_std1, 2))
+            print('Method 2 Name:', methods[1])
+            print('\tSample Average:', np.round(sample_average2, 2))
+            print('\tSample STandard deviation:', np.round(sample_std2, 2))
+            print('Method 3 Name:', methods[2])
+            print('\tSample Average:', np.round(sample_average3, 2))
+            print('\tSample STandard deviation:', np.round(sample_std3, 2))
+            print(methods[0], 'vs', methods[1])
+            print('\tThe p-value is:', np.round(pvalue1, 4))
+            print('\tThe t-value is:', np.round(tvalue1, 4))
+            print('\tThe average difference is:', np.round(sample_average1 - sample_average2, 2))
+            print(methods[0], 'vs', methods[2])
+            print('\tThe p-value is:', np.round(pvalue2, 4))
+            print('\tThe t-value is:', np.round(tvalue2, 4))
+            print('\tThe average difference is:', np.round(sample_average1 - sample_average3, 2))
+            print(methods[1], 'vs', methods[2])
+            print('\tThe p-value is:', np.round(pvalue3, 4))
+            print('\tThe t-value is:', np.round(tvalue3, 4))
+            print('\tThe average difference is:', np.round(sample_average2 - sample_average3, 2))
+            print('--------------------------------------------------------')
+
+        for methods in methods_list:
+            difference_in_mean_analysis(methods, results_path, sample_size)

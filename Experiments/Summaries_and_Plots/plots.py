@@ -148,9 +148,6 @@ def plot_interval_average(methods_data, ylim=(0,1), ytitle='ytitle', xtitle='xti
     if not xticks:
         xlocs, _ = plt.xticks()
         plt.xticks(xlocs, [])
-    if not yticks:
-        ylocs, _ = plt.yticks()
-        plt.yticks(ylocs, [])
 
     plt.tick_params(axis='both', which='major', labelsize=14)
     plt.xlim([-10, NUMBER_OF_EPISODES+10])
@@ -204,7 +201,7 @@ if __name__ == "__main__":
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
             plot_interval_average(method_data, ylim=(-1300, 0), ytitle='Average Return Over the Last 50 Episodes',
-                                  xtitle='Episode Number', figure_name='Sarsa_On_vs_Off')
+                                  xtitle='Episode Number', figure_name='Sarsa_On_vs_Off', xticks=True, yticks=True)
 
         # Q(0.5)
         method_names = ['QSigma0.5_OffPolicy', 'QSigma0.5_OnPolicy']
@@ -214,17 +211,18 @@ if __name__ == "__main__":
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
             plot_interval_average(method_data, ylim=(-1300, 0), ytitle='Average Return Over the Last 50 Episodes',
-                                  xtitle='Episode Number', figure_name='QSigma05_On_vs_Off')
+                                  xtitle='Episode Number', figure_name='QSigma05_On_vs_Off', xticks=True, yticks=False)
 
         # Decaying Sigma
-        method_names = ['DecayingSigma_OffPolicy', 'DecayingSigma_OnPolicy']
-        method_data = {'DecayingSigma_OffPolicy': {},
-                       'DecayingSigma_OnPolicy': {}}
+        method_names = ['Linearly_DecayingSigma_OffPolicy', 'Linearly_DecayingSigma_n1']
+        method_data = {'Linearly_DecayingSigma_OffPolicy': {},
+                       'Linearly_DecayingSigma_n1': {}}
 
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
             plot_interval_average(method_data, ylim=(-1300, 0), ytitle='Average Return Over the Last 50 Episodes',
-                                  xtitle='Episode Number', figure_name='DecayingSigma_On_vs_Off')
+                                  xtitle='Episode Number', figure_name='DecayingSigma_On_vs_Off',
+                                  xticks=True, yticks=False)
 
     #################################
     """ Annealing vs No Annealing """
@@ -326,10 +324,10 @@ if __name__ == "__main__":
                        'Sarsa_n20': {}}
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
-            plot_interval_average(methods_data=method_data, ylim=(-1500, -100),
+            plot_interval_average(methods_data=method_data, ylim=(-1200, -100),
                                   ytitle='Average Return Over the Last 50 Episodes',
                                   xtitle='Episode Number', figure_name='nStep_Sarsa',
-                                  interval_size=50)
+                                  interval_size=50, xticks=False, yticks=True)
 
         # QSigma0.5 #
         method_names = ['QSigma0.5_OnPolicy', 'QSigma0.5_n3', 'QSigma0.5_n5', 'QSigma0.5_n10', 'QSigma0.5_n20']
@@ -340,10 +338,10 @@ if __name__ == "__main__":
                        'QSigma0.5_n20': {}}
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
-            plot_interval_average(methods_data=method_data, ylim=(-1500, -100),
+            plot_interval_average(methods_data=method_data, ylim=(-1200, -100),
                                   ytitle='Average Return Over the Previous 50 Episodes',
                                   xtitle='Episode Number', figure_name='nStep_QSigma05',
-                                  interval_size=50)
+                                  interval_size=50, yticks=True, xticks=False)
 
         # TreeBackup #
         method_names = ['ExpectedSarsa', 'TreeBackup_n3', 'TreeBackup_n5', 'TreeBackup_n10', 'TreeBackup_n20']
@@ -354,26 +352,53 @@ if __name__ == "__main__":
                        'TreeBackup_n20': {}}
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
-            plot_interval_average(methods_data=method_data, ylim=(-1500, -100),
+            plot_interval_average(methods_data=method_data, ylim=(-1200, -100),
                                   ytitle='Average Return Over the Last 50 Episodes',
                                   xtitle='Episode Number', figure_name='nStep_TreeBackup',
-                                  interval_size=50)
+                                  interval_size=50, yticks=True, xticks=False)
 
         # Decaying Sigma #
-        method_names = ['DecayingSigma_OnPolicy', 'DecayingSigma_n3', 'DecayingSigma_n5', 'DecayingSigma_n10',
-                        'DecayingSigma_n20']
-        method_data = {'DecayingSigma_OnPolicy': {},
-                       'DecayingSigma_n3': {},
-                       'DecayingSigma_n5': {},
-                       'DecayingSigma_n10': {},
-                       'DecayingSigma_n20': {}}
+        method_names = ['Linearly_DecayingSigma_n1', 'Linearly_DecayingSigma_n3', 'Linearly_DecayingSigma_n5',
+                        'Linearly_DecayingSigma_n10', 'Linearly_DecayingSigma_n20']
+        method_data = {'Linearly_DecayingSigma_n1': {},
+                       'Linearly_DecayingSigma_n3': {},
+                       'Linearly_DecayingSigma_n5': {},
+                       'Linearly_DecayingSigma_n10': {},
+                       'Linearly_DecayingSigma_n20': {}}
         compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
         if args.interval_avg:
-            plot_interval_average(methods_data=method_data, ylim=(-1500, -100),
+            plot_interval_average(methods_data=method_data, ylim=(-1200, -100),
                                   ytitle='Average Return Over the Last 50 Episodes',
                                   xtitle='Episode Number', figure_name='nStep_DecayingSigma',
-                                  interval_size=50)
+                                  interval_size=50, xticks=False, yticks=True)
 
+        # QLearning #
+        method_names = ['QLearning', 'QLearning_n3', 'QLearning_n5', 'QLearning_n10', 'QLearning_n20']
+        method_data = {'QLearning': {},
+                       'QLearning_n3': {},
+                       'QLearning_n5': {},
+                       'QLearning_n10': {},
+                       'QLearning_n20': {}}
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        if args.interval_avg:
+            plot_interval_average(methods_data=method_data, ylim=(-1200, -100),
+                                  ytitle='Average Return Over the Last 50 Episodes',
+                                  xtitle='Episode Number', figure_name='nStep_QLearning',
+                                  interval_size=50, yticks=True, xticks=True)
+
+        # Retrace #
+        method_names = ['ExpectedSarsa', 'Retrace_n3', 'Retrace_n5', 'Retrace_n10', 'Retrace_n20']
+        method_data = {'ExpectedSarsa': {},
+                       'Retrace_n3': {},
+                       'Retrace_n5': {},
+                       'Retrace_n10': {},
+                       'Retrace_n20': {}}
+        compute_methods_statistics(results_path, method_names, method_data, colors, shade_colors)
+        if args.interval_avg:
+            plot_interval_average(methods_data=method_data, ylim=(-1200, -100),
+                                  ytitle='Average Return Over the Last 50 Episodes',
+                                  xtitle='Episode Number', figure_name='nStep_Retrace',
+                                  interval_size=50, yticks=True, xticks=True)
 
     ##########################
     """ Best n-Step Methods """
